@@ -1,0 +1,44 @@
+version: '3.8'
+
+# Run /bin/zsh
+# docker compose run --rm editor
+services:
+  ide-base:
+    env_file: .env
+    container_name: ide-base
+    # Set user
+    user: "${USER_ID}:${GROUP_ID}"
+    image: ide-base:latest
+    # Build image
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Define args for Dockerfile
+      args:
+        # User config
+        - BUILD_USERNAME=${USERNAME}
+        - BUILD_HOME=/home/${USERNAME}
+        - BUILD_USER_ID=${USER_ID}
+        - BUILD_GROUP_ID=${GROUP_ID}
+        - BUILD_GROUPNAME=${GROUPNAME}
+        - BUILD_GIT_USERNAME=${GIT_USERNAME}
+        - BUILD_GIT_EMAIL=${GIT_EMAIL}
+        - BUILD_TZ=${TZ}
+        - BUILD_TERM=${TERM}
+        - BUILD_LANGUAGE=${LANGUAGE}
+        - BUILD_LANG=${LANG}
+        - BUILD_LC_ALL=${LC_ALL}
+        - BUILD_NODE_VER=${NODE_VER}
+        - BUILD_SHELL=/bin/zsh
+          # Other paths
+        - BUILD_NVIM=/home/${USERNAME}/neovim/squashfs-root/usr/bin
+        - BUILD_NVM_DIR=/home/${USERNAME}/nvm
+        - BUILD_NODE=/home/${USERNAME}/nvm/versions/node/v${NODE_VER}/bin
+        - BUILD_WORKSPACE=/home/${USERNAME}/${WORKSPACE}
+
+# Overlay network create virtual network for multiple host
+# Bridge network creates virtual network for same host
+# networks:
+#   ide:
+#     driver: overlay        
+#     # attacheable: true
