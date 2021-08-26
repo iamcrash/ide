@@ -104,11 +104,10 @@ ENV \
 
 RUN mkdir -p $XDG_DATA_HOME $XDG_CONFIG_HOME $XDG_STATE_HOME $XDG_CACHE_HOME
 
-WORKDIR ${XDG_DATA_HOME}
-
 # Changeshell
 # RUN chsh -s /usr/bin/zsh $USERNAME
 
+WORKDIR ${XDG_DATA_HOME}
 
 RUN \
   # Git config \
@@ -122,7 +121,9 @@ RUN \
   curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | zsh || true 
 
 # Copy files from github
-COPY --chown=$USERNAME:$USERNAME ~/dotfiles/.config ${BUILD_HOME}/.config/
+RUN \
+  git clone https://github.com/iamcrash/dotfiles \
+  COPY --chown=$USERNAME:$USERNAME ~/dotfiles/.config ${BUILD_HOME}/.config/
 # COPY --chown=$USERNAME:$USERNAME ~/dotfiles/.oh-my-zsh/custom ${BUILDHOME}/.oh-my-zsh/custom/
 # COPY --chown=$USERNAME:$USERNAME ~/dotfiles/.p10* ${BUILD_HOME}/
 # COPY --chown=$USERNAME:$USERNAME dotfiles/.iterm2* $HOME/
