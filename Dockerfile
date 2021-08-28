@@ -29,7 +29,7 @@ RUN apt-get update \
   && locale-gen
 ENV LANGUAGE=${BUILD_LANGUAGE} \
   LANG=${BUILD_LANG} \
-  LC_ALL=${BUILD_LC_ALL}
+  LC_ALL=${BUILD_LC_ALL} 
 
 RUN \
   apt-get update \
@@ -94,70 +94,88 @@ RUN \
 #
 # HOME Config
 #
+USER ${BUILD_USERNAME}
+
 ENV \
   HOME=${BUILD_HOME} \
   # XDG Directory paths \
-  XDG_DATA_HOME=$HOME/.local/share \
-  XDG_CONFIG_HOME=$HOME/.config \
-  XDG_STATE_HOME=$HOME/.local/state \
-  XDG_CACHE_HOME=$HOME/.cache 
+  XDG_DATA_HOME=${BUILD_HOME}/.local/share \
+  XDG_CONFIG_HOME=${BUILD_HOME}/.config \
+  XDG_STATE_HOME=${BUILD_HOME}/.local/state \
+  XDG_CACHE_HOME=${BUILD_HOME}/.cache \
+  XDG_FONTS_HOME=${BUILD_HOME}/.local/share/fonts
 
-RUN mkdir -p $XDG_DATA_HOME $XDG_CONFIG_HOME $XDG_STATE_HOME $XDG_CACHE_HOME
+ENV \
+  ZSH="${XDG_DATA_HOME}/oh-my-zsh" \
+  ZSH_CUSTOM="${XDG_CONFIG_HOME}/oh-my-zsh" \
+  ZSH_THEME="\"powerlevel10k\/powerlevel10k\"" \
+  NVM_DIR="${XDG_CONFIG_HOME}/nvm"
+
+RUN mkdir -p \
+  $XDG_DATA_HOME \
+  $XDG_CONFIG_HOME \
+  $XDG_STATE_HOME \
+  $XDG_CACHE_HOME \
+  $XDG_FONTS_HOME \
+  $NVM_DIR \
+  $ZSH_CUSTOM 
+
+WORKDIR ${XDG_CONFIG_HOME}
+
+RUN \
+  # Install Oh-my-zsh \
+  curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | zsh || true
+
+RUN \
+  # Install NVM \
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash \
+  && . ${XDG_CONFIG_HOME}/nvm/nvm.sh \
+  # Install Node \
+  && nvm install "${BUILD_NODE_VER}" \
+  && nvm use node \
+  && npm install --global yarn \
+  && yarn global add neovim
+
+RUN \
+  # Nerdfonts \
+  curl -o "${XDG_FONTS_HOME}/Droid Sans Mono for Powerline Nerd Font Complete.otf" -fL https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/DroidSansMono/complete/Droid%20Sans%20Mono%20Nerd%20Font%20Complete.otf \
+  # Powerlevel10k theme \
+  && git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$ZSH_CUSTOM}/themes/powerlevel10k \
+  # Change varialble ZSH_THEME in .zshrc \
+  # && ZTHEME="\"powerlevel10k\/powerlevel10k\"" \
+  && sed -i -r "s/^(ZSH_THEME=).*/\1${ZSH_THEME}/" $HOME/.zshrc
 
 # Changeshell
 # RUN chsh -s /usr/bin/zsh $USERNAME
-
-WORKDIR ${XDG_DATA_HOME}
+# SHELL ["zsh", "-c" ]
 
 RUN \
   # Git config \
   git config --global user.name "${GIT_USERNAME}" \
   && git config --global user.email "${GIT_EMAIL}"
 
-ENV ZSH="$XDG_DATA_HOME/oh-my-zsh"
-
-RUN \
-  # Install Oh-my-zsh \
-  curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | zsh || true 
-
-# Copy files from github
+# Clone dotfiles repo and copy to disk
 RUN \
   git clone https://github.com/iamcrash/dotfiles \
-  COPY --chown=$USERNAME:$USERNAME ~/dotfiles/.config ${BUILD_HOME}/.config/
-# COPY --chown=$USERNAME:$USERNAME ~/dotfiles/.oh-my-zsh/custom ${BUILDHOME}/.oh-my-zsh/custom/
-# COPY --chown=$USERNAME:$USERNAME ~/dotfiles/.p10* ${BUILD_HOME}/
-# COPY --chown=$USERNAME:$USERNAME dotfiles/.iterm2* $HOME/
+  && cp -r dotfiles/.config/* . 
 
-USER ${BUILD_USERNAME}
+# SHELL ["zsh", "-c"]
 
 # Double quotes executes without shell
 # Single quotes executes with shell
 ENTRYPOINT ["zsh"] 
 
+
 # STOP---
-# RUN \
-#   # Nerdfonts \
-#   mkdir -p ${HOME}/.local/share/fonts \
-#   && cd ${HOME}/.local/share/fonts \
-#   && curl -fLo "Droid Sans Mono for Powerline Nerd Font Complete.otf" https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/DroidSansMono/complete/Droid%20Sans%20Mono%20Nerd%20Font%20Complete.otf \
-#   && cd ${HOME} \
-#   # Powerlevel10k theme \
-#   && git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k \
-#   # Change varialble ZSH_THEME in .zshrc \
-#   && ZTHEME="\"powerlevel10k\/powerlevel10k\"" \
-#   && sed -i -r "s/^(ZSH_THEME=).*/\1${ZTHEME}/" $HOME/.zshrc
+
+# COPY --chown=$USERNAME:$USERNAME ~/dotfiles/.config ${BUILD_HOME}/.config/
+# COPY --chown=$USERNAME:$USERNAME ~/dotfiles/.oh-my-zsh/custom ${BUILDHOME}/.oh-my-zsh/custom/
+# COPY --chown=$USERNAME:$USERNAME ~/dotfiles/.p10* ${BUILD_HOME}/
+# COPY --chown=$USERNAME:$USERNAME dotfiles/.iterm2* $HOME/
+
 # 
 # WORKDIR $HOME
 # 
-# RUN \
-#   # NVM \
-#   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash \
-#   && . ${XDG_CONFIG_HOME}/nvm/nvm.sh \
-#   # Node \
-#   && nvm install "${NODE_VER}" \
-#   && nvm use node \
-#   && npm install --global yarn \
-#   && yarn global add neovim
 # 
 # RUN \ 
 #   # Neovim \
