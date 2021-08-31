@@ -1,10 +1,9 @@
 FROM ubuntu:20.04
 
 ARG \
-  BUILD_HOME \
+  BUILD_USERNAME \
   BUILD_USER_ID \
   BUILD_GROUP_ID \
-  BUILD_USERNAME \
   BUILD_GROUPNAME \
   BUILD_GIT_EMAIL \
   BUILD_GIT_USERNAME \
@@ -12,24 +11,25 @@ ARG \
   BUILD_EDITOR \
   BUILD_NODE_ENV \
   BUILD_TERM \
-  BUILD_NVIM \
-  BUILD_NODE \
-  BUILD_NODE_VER \
-  BUILD_NVM_DIR \
-  BUILD_WORKSPACE \
   BUILD_SHELL \
   BUILD_LC_ALL \
   BUILD_LANG \
-  BUILD_LANGUAGE
+  BUILD_LANGUAGE \
+  BUILD_NODE_VER \
+  BUILD_NEOVIM_VER
 
 # Set the locale
 RUN apt-get update \
-  && apt-get -y install locales \
-  && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
-  && locale-gen
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y locales \
+  # && sed --in-place '/en_US.UTF-8/s/^#//' \
+  && sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
+  && locale-gen ${BUILD_LANG}  \
+  && update-locale LANG=${BUILD_LANG}
+
 ENV LANGUAGE=${BUILD_LANGUAGE} \
   LANG=${BUILD_LANG} \
-  LC_ALL=${BUILD_LC_ALL} 
+  LC_ALL=${BUILD_LC_ALL} \
+  TERM=${BUILD_TERM}
 
 RUN \
   apt-get update \
@@ -74,7 +74,15 @@ RUN \
   locales \
   locales-all \
   ca-certificates \
-  pkg-config 
+  pkg-config
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+ENV \
+  HOME=/home/${BUILD_USERNAME} \
+  USERNAME=${BUILD_USERNAME} \
+  GIT_USERNAME=${BUILD_GIT_USERNAME} \
+  GIT_EMAIL=${BUILD_GIT_EMAIL}
 
 RUN \
   # Create user \
@@ -83,33 +91,38 @@ RUN \
   --quiet \
   --disabled-password \
   --shell ${BUILD_SHELL} \
-  --home ${BUILD_HOME} \
+  --home ${HOME} \
   --uid ${BUILD_USER_ID} \
   --gid ${BUILD_GROUP_ID} \
   --gecos ' ' \
-  ${BUILD_USERNAME} \
-  && echo "${BUILD_USERNAME}:password" | chpasswd \
-  && usermod -aG sudo ${BUILD_USERNAME}
+  ${USERNAME} \
+  && echo "${USERNAME}:password" | chpasswd \
+  && usermod -aG sudo ${USERNAME}
 
-#
-# HOME Config
-#
-USER ${BUILD_USERNAME}
+USER ${USERNAME}
 
 ENV \
-  HOME=${BUILD_HOME} \
-  # XDG Directory paths \
-  XDG_DATA_HOME=${BUILD_HOME}/.local/share \
-  XDG_CONFIG_HOME=${BUILD_HOME}/.config \
-  XDG_STATE_HOME=${BUILD_HOME}/.local/state \
-  XDG_CACHE_HOME=${BUILD_HOME}/.cache \
-  XDG_FONTS_HOME=${BUILD_HOME}/.local/share/fonts
+  XDG_DATA_HOME=${HOME}/.local/share \
+  XDG_CONFIG_HOME=${HOME}/.config \
+  XDG_STATE_HOME=${HOME}/.local/state \
+  XDG_CACHE_HOME=${HOME}/.cache \
+  XDG_FONTS_HOME=${HOME}/.local/share/fonts \
+  LOCAL_BIN=${HOME}/.local/bin \
+  WORKSPACE=${HOME}/workspace \
+  NODE_VER=${BUILD_NODE_VER}
 
 ENV \
   ZSH="${XDG_DATA_HOME}/oh-my-zsh" \
   ZSH_CUSTOM="${XDG_CONFIG_HOME}/oh-my-zsh" \
   ZSH_THEME="\"powerlevel10k\/powerlevel10k\"" \
+  NEOVIM_DIR="${XDG_DATA_HOME}/neovim" \
+  NEOVIM_VER=${BUILD_NEOVIM_VER} \
   NVM_DIR="${XDG_CONFIG_HOME}/nvm"
+
+ENV \
+  NODE_PATH="${NVM_DIR}/versions/node/v${NODE_VER}/bin" \
+  LUNARVIM_CONFIG_DIR="${XDG_CONFIG_HOME}/lvim" \
+  LUNARVIM_RUNTIME_DIR="${XDG_DATA_HOME}/lunarvim" 
 
 RUN mkdir -p \
   $XDG_DATA_HOME \
@@ -117,11 +130,16 @@ RUN mkdir -p \
   $XDG_STATE_HOME \
   $XDG_CACHE_HOME \
   $XDG_FONTS_HOME \
+  $LOCAL_BIN \
   $NVM_DIR \
-  $ZSH_CUSTOM 
+  $ZSH_CUSTOM \
+  $NEOVIM_DIR
+
+ENV PATH=${LOCAL_BIN}:${NODE_PATH}:${PATH}
 
 WORKDIR ${XDG_CONFIG_HOME}
 
+# TODO: Env in oh-my-zsh custom should have environment variables?
 RUN \
   # Install Oh-my-zsh \
   curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | zsh || true
@@ -131,10 +149,12 @@ RUN \
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash \
   && . ${XDG_CONFIG_HOME}/nvm/nvm.sh \
   # Install Node \
-  && nvm install "${BUILD_NODE_VER}" \
+  && nvm install ${NODE_VER} \
   && nvm use node \
   && npm install --global yarn \
-  && yarn global add neovim
+  && yarn global add neovim 
+
+# TODO: create soft links and add to path?
 
 RUN \
   # Nerdfonts \
@@ -154,67 +174,44 @@ RUN \
   git config --global user.name "${GIT_USERNAME}" \
   && git config --global user.email "${GIT_EMAIL}"
 
-# Clone dotfiles repo and copy to disk
+RUN \ 
+  # Install Neovim \
+  wget https://github.com/neovim/neovim/releases/download/v${NEOVIM_VER}/nvim.appimage -P ${NEOVIM_DIR} \
+  && ls -al ${NEOVIM_DIR} \
+  && chmod u+x ${NEOVIM_DIR}/nvim.appimage \
+  && cd ${NEOVIM_DIR} \
+  && ./nvim.appimage --appimage-extract \
+  && ln -s ${NEOVIM_DIR}/squashfs-root/usr/bin/nvim ${LOCAL_BIN}/nvim
+
+# . command is source, and \. is to not use alias for source if there is one
+# RUN \. ${NVM_DIR}/nvm.sh \
+
+USER root
+
+SHELL ["zsh", "-c"]
+
 RUN \
+  # Install lunarvim \
+  echo "installing luarvim.." \
+  && curl -s https://raw.githubusercontent.com/lunarvim/lunarvim/master/utils/installer/install.sh | bash
+
+# RUN \
+#   # Change $HOME ownership to user \
+#   chown -R "${USERNAME}:${GROUPNAME}" ${HOME}
+
+# Copy dotfiles as last command to avoid errors
+RUN \
+  # Clone dotfiles repo and copy to disk \
   git clone https://github.com/iamcrash/dotfiles \
   && cp -r dotfiles/.config/* . 
-
-# SHELL ["zsh", "-c"]
-
-# Double quotes executes without shell
-# Single quotes executes with shell
-ENTRYPOINT ["zsh"] 
-
-
-# STOP---
 
 # COPY --chown=$USERNAME:$USERNAME ~/dotfiles/.config ${BUILD_HOME}/.config/
 # COPY --chown=$USERNAME:$USERNAME ~/dotfiles/.oh-my-zsh/custom ${BUILDHOME}/.oh-my-zsh/custom/
 # COPY --chown=$USERNAME:$USERNAME ~/dotfiles/.p10* ${BUILD_HOME}/
 # COPY --chown=$USERNAME:$USERNAME dotfiles/.iterm2* $HOME/
 
-# 
-# WORKDIR $HOME
-# 
-# 
-# RUN \ 
-#   # Neovim \
-#   mkdir -p ${HOME}/neovim \
-#   && cd ${HOME}/neovim \
-#   && wget https://github.com/neovim/neovim/releases/download/v0.5.0/nvim.appimage \
-#   && chmod u+x nvim.appimage && ./nvim.appimage --appimage-extract \
-#   && cd ${HOME}
-# 
-# RUN \
-#   # Change $HOME ownership to user \
-#   chown -R "${USERNAME}:${GROUPNAME}" ${HOME}
-# 
-# USER $USERNAME
-# 
-# # ENV \
-# #   USER_ID=${BUILD_USER_ID} \
-# #   GROUP_ID=${BUILD_GROUP_ID} \
-# #   USERNAME=${BUILD_USERNAME} \
-# #   GROUPNAME=${BUILD_GROUPNAME} \
-# #   GIT_USERNAME=${BUILD_GIT_USERNAME} \
-# #   GIT_EMAIL=${BUILD_GIT_EMAIL} \
-# #   HOME=${BUILD_HOME} 
-# 
-# 
-# # ENV \
-# #   TZ=${BUILD_TZ} \
-# #   EDITOR=${BUILD_EDITOR} \
-# #   NODE_ENV=${BUILD_NODE_ENV} \
-# #   TERM=${BUILD_TERM} \
-# #   XDG_CONFIG_HOME=${BUILD_XDG_CONFIG_HOME} \
-# #   XDG_STATE_HOME=${BUILD_XDG_STATE_HOME} \
-# #   XDG_DATA_HOME=${BUILD_XDG_DATA_HOME} \
-# #   XDG_CACHE_HOME=${BUILD_XDG_CACHE_HOME} \
-# #   XDG_RUNTIME_DIR=${BUILD_XDG_RUNTIME_DIR} \
-# #   NVIM=${BUILD_NVIM} \
-# #   NODE_VER=${BUILD_NODE_VER} \
-# #   NODE=${BUILD_NODE} \
-# #   WORKSPACE=${BUILD_WORKSPACE} \
-# #   SHELL=${BUILD_SHELL} \
-# #   PATH=${BUILD_NVIM}:${BUILD_NODE}:${PATH}
-# 
+# Double quotes executes without shell
+# Single quotes executes with shell
+USER ${USERNAME}
+WORKDIR $HOME
+ENTRYPOINT ["zsh"] 

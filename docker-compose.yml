@@ -4,38 +4,47 @@ version: '3.8'
 # docker compose run --rm editor
 services:
   ide-base:
-    env_file: .env
-    container_name: ide-base
+    container_name: ide-base-container
     # Set user
-    user: "${USER_ID}:${GROUP_ID}"
+    # user: "${USER_ID}:${GROUP_ID}"
     image: ide-base:latest
     # Build image
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.base
       # Define args for Dockerfile
       args:
         # User config
-        - BUILD_USERNAME=${USERNAME}
-        - BUILD_HOME=/home/${USERNAME}
-        - BUILD_USER_ID=${USER_ID}
-        - BUILD_GROUP_ID=${GROUP_ID}
-        - BUILD_GROUPNAME=${GROUPNAME}
-        - BUILD_GIT_USERNAME=${GIT_USERNAME}
-        - BUILD_GIT_EMAIL=${GIT_EMAIL}
-        - BUILD_TZ=${TZ}
-        - BUILD_TERM=${TERM}
-        - BUILD_LANGUAGE=${LANGUAGE}
-        - BUILD_LANG=${LANG}
-        - BUILD_LC_ALL=${LC_ALL}
-        - BUILD_NODE_VER=${NODE_VER}
-        - BUILD_SHELL=/bin/zsh
-          # Other paths
-        - BUILD_NVIM=/home/${USERNAME}/neovim/squashfs-root/usr/bin
-        - BUILD_NVM_DIR=/home/${USERNAME}/nvm
-        - BUILD_NODE=/home/${USERNAME}/nvm/versions/node/v${NODE_VER}/bin
-        - BUILD_WORKSPACE=/home/${USERNAME}/${WORKSPACE}
+        - BUILD_USERNAME=crash
+        - BUILD_PASSWORD=password
+        - BUILD_USER_ID=1001
+        - BUILD_GROUP_ID=1001
+        - BUILD_GROUPNAME=crash
+        - BUILD_GIT_USERNAME=iamcrash
+        - BUILD_GIT_EMAIL=crash.machine@icloud.com
+        - BUILD_TZ=America/Chicago
+        - BUILD_TERM=xterm-256color
+        - BUILD_LANGUAGE=en_US.en
+        - BUILD_LANG=en_US.UTF-8
+        - BUILD_LC_ALL=en_US.UTF-8
+        - BUILD_SHELL=/usr/bin/zsh
+        - BUILD_EDITOR=nvim
+        - BUILD_NODE_ENV=dev
+        - BUILD_NODE_VER=14.17.5
+        - BUILD_NEOVIM_VER=0.5.0
 
+  ide-main:
+    container_name: ide-main-container
+    # Set user
+    # user: "${USER_ID}:${GROUP_ID}"
+    image: ide-main:latest
+    # Build image
+    build:
+      context: .
+      dockerfile: Dockerfile.main
+
+      # Define args for Dockerfile
+          # Other paths
 # Overlay network create virtual network for multiple host
 # Bridge network creates virtual network for same host
 # networks:
