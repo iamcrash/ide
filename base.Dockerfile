@@ -98,10 +98,6 @@ RUN \
   && echo "${BUILD_USERNAME}:${BUILD_PASSWORD}" | chpasswd \
   && usermod -aG sudo ${BUILD_USERNAME}
 
-USER ${USERNAME}
-
-SHELL [ "/usr/bin/zsh","-c" ]
-ENV SHELL ${BUILD_SHELL}
 
 ENV \
   XDG_DATA_HOME=${HOME}/.local/share \
@@ -125,41 +121,5 @@ ENV \
   NODE_PATH="${NVM_DIR}/versions/node/v${NODE_VER}/bin"
 
 ENV PATH=${LOCAL_BIN}:${NODE_PATH}:${PATH}
-
-RUN mkdir -p \
-  $XDG_DATA_HOME \
-  $XDG_CONFIG_HOME \
-  $XDG_STATE_HOME \
-  $XDG_CACHE_HOME \
-  $XDG_FONTS_HOME \
-  $LOCAL_BIN \
-  $NVM_DIR \
-  $ZSH_CUSTOM \
-  $NEOVIM_DIR 
-
-WORKDIR ${XDG_CONFIG_HOME}
-
-RUN \
-  # Install Oh-my-zsh \
-  curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | zsh || true
-
-RUN \
-  # Install Rust \
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-
-RUN \
-  # Install NVM \
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash \
-  && . ${XDG_CONFIG_HOME}/nvm/nvm.sh \
-  # Install Node \
-  && nvm install ${NODE_VER} \
-  && nvm use node \
-  && npm install --global yarn \
-  && yarn global add neovim 
-
-# RUN \
-#  # git clone --branch <branchname> <remote-repo-url> \
-#  git clone --branch dev https://github.com/iamcrash/dotfiles \
-#  && cp -r dotfiles/config/oh-my-zsh .
 
 CMD ["/usr/bin/zsh"]
