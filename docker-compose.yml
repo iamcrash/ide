@@ -2,7 +2,8 @@ version: '3.8'
 
 ###
 # *Use docker-compose run not docker-compose start 
-# docker compose run --rm editor
+# Run: docker compose run --rm editor
+# Build: docker compose build --no-cache
 ###
 
 services:
