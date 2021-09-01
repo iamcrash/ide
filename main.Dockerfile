@@ -20,7 +20,7 @@ RUN mkdir -p \
 
 RUN \
   # Clone dotfiles
-  git clone --branch dev https://github.com/iamcrash/dotfiles
+  git clone https://github.com/iamcrash/dotfiles
 
 RUN \
   # Install Oh-my-zsh \
