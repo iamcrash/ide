@@ -47,3 +47,7 @@ services:
     build:
       context: .
       dockerfile: main.Dockerfile
+    volumes:
+      - "./workspace:~/workspace"
+
+

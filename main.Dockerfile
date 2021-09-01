@@ -19,10 +19,6 @@ RUN mkdir -p \
   $NEOVIM_DIR
 
 RUN \
-  # Clone dotfiles
-  git clone https://github.com/iamcrash/dotfiles
-
-RUN \
   # Install Oh-my-zsh \
   curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | zsh || true
 
@@ -63,9 +59,6 @@ RUN \
   && ./nvim.appimage --appimage-extract \
   && ln -s ${NEOVIM_DIR}/squashfs-root/usr/bin/nvim ${LOCAL_BIN}/nvim
 
-# ENV \
-#   LUNARVIM_CONFIG_DIR="${XDG_CONFIG_HOME}/lvim" \
-#   LUNARVIM_RUNTIME_DIR="${XDG_DATA_HOME}/lunarvim" 
 RUN \
   # Install lunarvim \
   wget https://raw.githubusercontent.com/lunarvim/lunarvim/master/utils/installer/install.sh \
@@ -75,13 +68,26 @@ RUN \
 
 WORKDIR $HOME
 
+ENV \
+   LUNARVIM_CONFIG_DIR="${XDG_CONFIG_HOME}/lvim" \
+   LUNARVIM_RUNTIME_DIR="${XDG_DATA_HOME}/lunarvim" 
+
 RUN \
-  cp -r dotfiles/zsh $XDG_CONFIG_HOME \
+  git clone https://github.com/iamcrash/dotfiles \
+  && cp -r dotfiles/zsh $XDG_CONFIG_HOME \
   && cp .zshrc $XDG_CONFIG_HOME/zsh/build/zshrc \
   && env > $XDG_CONFIG_HOME/zsh/build/env \
   && cp $XDG_CONFIG_HOME/zsh/zshrc .zshrc \
-  && cp -r dotfiles/iterm2 $XDG_CONFIG_HOME
+  && cp -r dotfiles/iterm2 $XDG_CONFIG_HOME \
+  && cp dotfiles/lvim/config.lua $LUNARVIM_CONFIG_DIR
+
+# TODO: Install formatters
+RUN \
+  # Lua formatter
+  cargo install stylua
+
+# TODO: Install linters
 
 # Double quotes executes without shell
 # Single quotes executes with shell
-ENTRYPOINT ["/usr/bin/zsh"] 
+ENTRYPOINT ["zsh"] 
