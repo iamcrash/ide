@@ -1,8 +1,12 @@
 version: '3.8'
 
-# Run /bin/zsh
+###
+# *Use docker-compose run not docker-compose start 
 # docker compose run --rm editor
+###
+
 services:
+
   ide-base:
     container_name: ide-base-container
     # Set user
@@ -33,16 +37,6 @@ services:
         - BUILD_NODE_VER=14.17.5
         - BUILD_NEOVIM_VER=0.5.0
 
-  ide-test:
-    container_name: ide-test-container
-    # Set user
-    # user: "${USER_ID}:${GROUP_ID}"
-    image: ide-test:latest
-    # Build image
-    build:
-      context: .
-      dockerfile: test.Dockerfile
-
   ide-main:
     container_name: ide-main-container
     # Set user
@@ -52,13 +46,3 @@ services:
     build:
       context: .
       dockerfile: main.Dockerfile
-
-
-      # Define args for Dockerfile
-          # Other paths
-# Overlay network create virtual network for multiple host
-# Bridge network creates virtual network for same host
-# networks:
-#   ide:
-#     driver: overlay        
-#     # attacheable: true
