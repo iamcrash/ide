@@ -76,7 +76,8 @@ RUN \
   locales-all \
   ca-certificates \
   pkg-config \
-  fonts-powerline
+  fonts-powerline \
+  tree
 
 ENV \
   USERNAME=${BUILD_USERNAME} \
@@ -111,7 +112,7 @@ ENV \
 
 ENV \
   ZSH="${XDG_DATA_HOME}/oh-my-zsh" \
-  ZSH_CUSTOM="${XDG_CONFIG_HOME}/oh-my-zsh/custom" \
+  ZSH_CUSTOM="${XDG_CONFIG_HOME}/zsh/custom" \
   ZSH_THEME="\"powerlevel10k\/powerlevel10k\"" \
   NEOVIM_DIR="${XDG_DATA_HOME}/neovim" \
   NEOVIM_VER="${BUILD_NEOVIM_VER}" \

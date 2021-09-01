@@ -19,9 +19,17 @@ RUN mkdir -p \
   $NEOVIM_DIR
 
 RUN \
+  # Clone dotfiles
+  git clone --branch dev https://github.com/iamcrash/dotfiles
+
+RUN \
   # Install Oh-my-zsh \
   curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | zsh || true
 
+# Rust environment variables
+# ENV 
+#   RUSTUP_HOME=${XDG_DATA_HOME}/rustup \
+#   CARGO_HOME=${XDG_DATA_HOME}/cargo
 RUN \
   # Install Rust \
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -37,10 +45,10 @@ RUN \
   && yarn global add neovim 
 
 RUN \
-  # Nerdfonts \
+  # Install Nerdfonts \
   curl -o "${XDG_FONTS_HOME}/Droid Sans Mono for Powerline Nerd Font Complete.otf" -fL https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/DroidSansMono/complete/Droid%20Sans%20Mono%20Nerd%20Font%20Complete.otf \
-  # Powerlevel10k theme \
-  && git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$ZSH_CUSTOM}/themes/powerlevel10k
+  # Install Powerlevel10k theme \
+  && git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH:-$ZSH}/themes/powerlevel10k
 
 # RUN \  
   ## Change varialble ZSH_THEME in .zshrc \
@@ -66,6 +74,13 @@ RUN \
   && rm install.sh
 
 WORKDIR $HOME
+
+RUN \
+  cp -r dotfiles/zsh $XDG_CONFIG_HOME \
+  && cp .zshrc $XDG_CONFIG_HOME/zsh/build/zshrc \
+  && env > $XDG_CONFIG_HOME/zsh/build/env \
+  && cp $XDG_CONFIG_HOME/zsh/zshrc .zshrc \
+  && cp -r dotfiles/iterm2 $XDG_CONFIG_HOME
 
 # Double quotes executes without shell
 # Single quotes executes with shell
