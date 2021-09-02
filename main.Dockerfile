@@ -95,8 +95,9 @@ RUN \
 #  # Install javascript linter
 #  npm -ig eslint
 
+WORKDIR $HOME/workspace
+
 VOLUME $HOME/workspace
-VOLUME $HOME/.ssh
 
 # Double quotes executes without shell
 # Single quotes executes with shell
