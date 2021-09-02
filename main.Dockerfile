@@ -83,10 +83,20 @@ RUN \
 
 # TODO: Install formatters
 RUN \
-  # Lua formatter
+  # Intall Lua formatter \
   cargo install stylua
 
+# # Install solidity
+# RUN \
+#   npm -i -g prettier prettier-plugin-solidity
+
 # TODO: Install linters
+# RUN \
+#  # Install javascript linter
+#  npm -ig eslint
+
+VOLUME $HOME/workspace
+VOLUME $HOME/.ssh
 
 # Double quotes executes without shell
 # Single quotes executes with shell
