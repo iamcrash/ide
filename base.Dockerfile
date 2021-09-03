@@ -30,7 +30,7 @@ RUN apt-get update \
 ENV LANGUAGE=${BUILD_LANGUAGE} \
   LANG=${BUILD_LANG} \
   LC_ALL=${BUILD_LC_ALL} \
-  TERM=${BUILD_TERM}
+  TERM=${BUILD_TERM} 
 
 RUN \
   apt-get update \
