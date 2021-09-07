@@ -1,0 +1,59 @@
+version: '3.8'
+
+###
+# *Use docker-compose run not docker-compose start 
+# Run: docker compose run --rm editor
+# Build: docker compose build --no-cache
+###
+
+services:
+
+  base:
+    container_name: ide-base
+    # env_file: .env
+    # Set user
+    # user: "${USER_ID}:${GROUP_ID}"
+    image: ide-base:latest
+    # Build image
+    hostname: machine
+    build:
+      context: .
+      dockerfile: base.Dockerfile
+      # args:
+      #   - BUILD_USERNAME=crash
+      #   - BUILD_PASSWORD=password
+      #   - BUILD_USER_ID=1000
+      #   - BUILD_GROUPNAME=crash
+      #   - BUILD_GROUP_ID=1000
+      #   - BUILD_HOSTNAME=machine
+      #   - BUILD_GIT_USERNAME=iamcrash
+      #   - BUILD_GIT_EMAIL=crash.machine@icloud.com
+      #   - BUILD_TZ=America/Chicago
+      #   - BUILD_LANGUAGE=en
+      #   - BUILD_LANG=en_US.UTF-8
+      #   - BUILD_LC_ALL=en_US.UTF-8
+      #   - BUILD_SHELL=/usr/bin/zsh
+      #   - BUILD_TERM=xterm-256color
+
+  bootstrap:
+    container_name: ide-bootstrap
+    image: ide-bootstrap:latest
+    hostname: machine
+    build:
+      context: .
+      dockerfile: bootstrap.Dockerfile
+
+  editor:
+    container_name: ide-editor
+    image: ide-editor:latest
+    hostname: machine
+    build:
+      context: .
+      dockerfile: editor.Dockerfile
+      # args:
+      #   - BUILD_NODE_VER=14.17.5
+      #   - BUILD_NEOVIM_VER=0.5.0
+      #   - BUILD_NODE_ENV=development
+
+    volumes:
+      - "./workspace:/workspace"
