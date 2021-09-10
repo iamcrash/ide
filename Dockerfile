@@ -172,42 +172,44 @@ RUN mkdir -p \
   $XDG_RUNTIME_DIR \
   $XDG_STATE_HOME
 
-COPY --chown=${USERNAME}:${GROUPNAME} ../dotfiles ${DOTFILES}
-COPY --chown=${USERNAME}:${GROUPNAME} ../dotfiles/zsh ${ZDOTDIR}
+RUN (printenv)
 
-RUN \
-  touch ${EXPORTS_FILE} \
-  && chmod +x ${BOOTSTRAP_FILE} \
-  && . ${BOOTSTRAP_FILE} \
-  && cat ${EXPORTS_FILE}
-
-# Install oh-my-zsh
-RUN curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | zsh || true
-
-RUN \
-  # Install Nerdfonts \
-  curl -o "${XDG_FONTS_HOME}/Droid Sans Mono for Powerline Nerd Font Complete.otf" -fL https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/DroidSansMono/complete/Droid%20Sans%20Mono%20Nerd%20Font%20Complete.otf
-
-RUN \
-  # Install Powerlevel10k theme \
-  git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH:-$ZSH}/themes/powerlevel10k
-
-# Install Rust
-RUN \
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-
-# Install Golang
-RUN \
-  wget https://golang.org/dl/go1.17.linux-amd64.tar.gz -P ${GOROOT}
-
-# Install NVM, Node, and yarn
-RUN \
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | zsh \
-  && . ${NVM_DIR}/nvm.sh \
-  # Install Node \
-  && nvm install ${NODE_VER} \
-  && nvm use node \
-  && npm install --global yarn \
-  && yarn global add neovim 
-
-CMD ["zsh"]
+# COPY --chown=${USERNAME}:${GROUPNAME} ../dotfiles ${DOTFILES}
+# COPY --chown=${USERNAME}:${GROUPNAME} ../dotfiles/zsh ${ZDOTDIR}
+# 
+# RUN \
+#   touch ${EXPORTS_FILE} \
+#   && chmod +x ${BOOTSTRAP_FILE} \
+#   && . ${BOOTSTRAP_FILE} \
+#   && cat ${EXPORTS_FILE}
+# 
+# # Install oh-my-zsh
+# RUN curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | zsh || true
+# 
+# RUN \
+#   # Install Nerdfonts \
+#   curl -o "${XDG_FONTS_HOME}/Droid Sans Mono for Powerline Nerd Font Complete.otf" -fL https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/DroidSansMono/complete/Droid%20Sans%20Mono%20Nerd%20Font%20Complete.otf
+# 
+# RUN \
+#   # Install Powerlevel10k theme \
+#   git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH:-$ZSH}/themes/powerlevel10k
+# 
+# # Install Rust
+# RUN \
+#   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+# 
+# # Install Golang
+# RUN \
+#   wget https://golang.org/dl/go1.17.linux-amd64.tar.gz -P ${GOROOT}
+# 
+# # Install NVM, Node, and yarn
+# RUN \
+#   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | zsh \
+#   && . ${NVM_DIR}/nvm.sh \
+#   # Install Node \
+#   && nvm install ${NODE_VER} \
+#   && nvm use node \
+#   && npm install --global yarn \
+#   && yarn global add neovim 
+# 
+# CMD ["zsh"]

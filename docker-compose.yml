@@ -1,37 +1,57 @@
 version: '3.9'
-
-###
-# *Use docker-compose run not docker-compose start 
-# Run: docker compose run --rm editor
-# Build: docker compose build --no-cache
-###
-
 services:
-
   base:
-    extends:
-      file: ./base/base.yml
-      service: base
-
-  bootstrap:
+    env_file:
+      - .env
     container_name: ide-bootstrap
-    image: ide-bootstrap:latest
+    # Set user
+    # user: "${USER_ID}:${GROUP_ID}"
+    image: ide-base:latest
+    # Build image
     hostname: machine
     build:
       context: .
-      dockerfile: bootstrap.Dockerfile
-
-  editor:
-    container_name: ide-editor
-    image: ide-editor:latest
-    hostname: machine
-    build:
-      context: .
-      dockerfile: editor.Dockerfile
-      # args:
-      #   - BUILD_NODE_VER=14.17.5
-      #   - BUILD_NEOVIM_VER=0.5.0
-      #   - BUILD_NODE_ENV=development
-
-    volumes:
-      - "./workspace:/workspace"
+      dockerfile: ./Dockerfile
+      args:
+        - USERNAME=${USERNAME}
+        - HOME=${HOME}
+        - PASSWORD=${PASSWORD}
+        - USER_ID=${USER_ID}
+        - GROUP_ID=${GROUP_ID}
+        - GROUPNAME=${GROUPNAME}
+        - HOSTNAME=${HOSTNAME}
+        - GIT_USERNAME=${GIT_USERNAME}
+        - GIT_EMAIL=${GIT_EMAIL}
+        - EDITOR=${EDITOR}
+        - TZ=${TZ}
+        - LANGUAGE=${LANGUAGE}
+        - LANG=${LANG}
+        - LC_ALL=${LC_ALL}
+        - SHELL=${SHELL}
+        - TERM=${TERM}
+        - NODE_VER=${NODE_VER}
+        - NEOVIM_VER=${NEOVIM_VER}
+        - GOLANG_VER=${GOLANG_VER}
+        # TODO: Finish settings vars from .env
+        - DOTFILES=${HOME}/.config/dotfiles 
+        - WORKSPACE=${HOME}/workspace
+        - XDG_CONFIG_HOME=${HOME}/.config 
+        - XDG_CACHE_HOME=${HOME}/.cache 
+        - XDG_DATA_HOME=${HOME}/.local/share 
+        - XDG_RUNTIME_DIR=${HOME}/.xdg 
+        - XDG_STATE_HOME=${HOME}/.local/state 
+        - XDG_BIN_HOME=${HOME}/.local/bin 
+        - XDG_FONTS_HOME=${HOME}/.local/fonts
+        - SHELL_SESSIONS_DISABLE=1
+        - ZDOTDIR=${XDG_CONFIG_HOME}/zsh
+        - ZSH=${XDG_DATA_HOME}/oh-my-zsh 
+        - ZSH_CUSTOM=${ZDOTDIR}/custom
+        - NODE_ENVIRONMENT=development 
+        - NEOVIM_DIR=${XDG_DATA_HOME}/neovim 
+        - CARGO_HOME=${HOME}/.cargo 
+        - NVM_DIR=${XDG_CONFIG_HOME}/nvm 
+        - RUSTUP_HOME=${XDG_DATA_HOME}/rustup 
+        - GOROOT=${XDG_DATA_HOME}/go 
+        - GOPATH=${HOME}/go
+        - BOOTSTRAP_FILE=${DOTFILES}/main.sh 
+        - EXPORTS_FILE=${ZDOTDIR}/exports.env
