@@ -194,6 +194,9 @@ ENV \
   BOOTSTRAP_FILE=${DOTFILES}/main.sh \
   EXPORTS_FILE=${ZDOTDIR}/exports.env
 
+COPY --chown=${USERNAME}:${GROUPNAME} dotfiles/ ${DOTFILES}
+COPY --chown=${USERNAME}:${GROUPNAME} dotfiles/ ${HOME}
+
 RUN mkdir -p \
   $XDG_BIN_HOME \
   $XDG_CACHE_HOME \
@@ -205,15 +208,6 @@ RUN mkdir -p \
   $ZSH \
   $ZDOTDIR \
   $ZSH_CUSTOM
-
-# COPY --chown=${USERNAME}:${GROUPNAME} ../dotfiles ${DOTFILES}
-# COPY --chown=${USERNAME}:${GROUPNAME} ../dotfiles/zsh ${ZDOTDIR}
-
-# RUN \
-#   touch ${EXPORTS_FILE} \
-#   && chmod +x ${BOOTSTRAP_FILE} \
-#   && . ${BOOTSTRAP_FILE} \
-#   && cat ${EXPORTS_FILE}
 
 # Install oh-my-zsh
 RUN curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | zsh || true
@@ -257,9 +251,7 @@ RUN \
   && ln -s ${NEOVIM_DIR}/squashfs-root/usr/bin/nvim ${XDG_BIN_HOME}/nvim
 
 RUN \
-
   . ${NVM_DIR}/nvm.sh \
-  && nvm use node \
   # Install lunarvim \
   && wget https://raw.githubusercontent.com/lunarvim/lunarvim/master/utils/installer/install.sh \
   && chmod +x install.sh \
