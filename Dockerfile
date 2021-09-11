@@ -244,4 +244,26 @@ RUN \
 RUN \
   wget https://golang.org/dl/go1.17.linux-amd64.tar.gz -P ${GOROOT}
 
+# ENV \
+#    LUNARVIM_CONFIG_DIR="${XDG_CONFIG_HOME}/lvim" \
+#    LUNARVIM_RUNTIME_DIR="${XDG_DATA_HOME}/lunarvim" 
+
+RUN \ 
+  # Install Neovim \
+  wget https://github.com/neovim/neovim/releases/download/v${NEOVIM_VER}/nvim.appimage -P ${NEOVIM_DIR} \
+  && chmod u+x ${NEOVIM_DIR}/nvim.appimage \
+  && cd ${NEOVIM_DIR} \
+  && ./nvim.appimage --appimage-extract \
+  && ln -s ${NEOVIM_DIR}/squashfs-root/usr/bin/nvim ${XDG_BIN_HOME}/nvim
+
+RUN \
+
+  . ${NVM_DIR}/nvm.sh \
+  && nvm use node \
+  # Install lunarvim \
+  && wget https://raw.githubusercontent.com/lunarvim/lunarvim/master/utils/installer/install.sh \
+  && chmod +x install.sh \
+  && yes | ./install.sh \
+  && rm install.sh
+
 CMD ["zsh"]
