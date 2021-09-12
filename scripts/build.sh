@@ -10,7 +10,15 @@
 
 source .env
 
-docker-compose build $*
+_logfile=.log
+
+_break_="#############\n"
+
+_NOW=$(date +"%T-%m-%d-%Y")
+
+echo "${_break_}" "# ${_NOW}\n" "${_break_}" >> $_logfile
+
+docker-compose build $* >> $_logfile
 
 
 
