@@ -1,5 +1,7 @@
 version: '3.9'
 services:
+
+  # Setup base environment
   base:
     env_file:
       - .env
@@ -15,15 +17,16 @@ services:
         - LC_ALL=${LC_ALL}
         - LANGUAGE=${LANGUAGE}
 
-  home:
+  # Setup local dev environment
+  local:
     env_file:
       - .env
-    container_name: ide-home
-    image: ide-home:latest
+    container_name: ide-local
+    image: ide-local:latest
     hostname: machine
     build:
       context: .
-      dockerfile: ./home.Dockerfile
+      dockerfile: ./local.Dockerfile
       args:
         # User
         - USERNAME=${USERNAME}
@@ -77,6 +80,8 @@ services:
     # volumes:
     #   - ./volume/zsh:${ZDOTDIR}
 
+  # Setup editors, language server, linters, and formatters
+  # for dev environment
   editor:
     env_file:
       - .env

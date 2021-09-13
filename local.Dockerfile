@@ -2,7 +2,7 @@ FROM ide-base:latest
 
 ########
 #
-# ide-base creates user, and setups home dev environment,
+# local.Dockerfile creates user, setups home dev environment,
 # and installs common packages for dev environment.
 #
 ########
