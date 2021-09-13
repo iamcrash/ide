@@ -1,11 +1,13 @@
 FROM ide-base:latest
 
 ########
-# ide-base creeates user and setsup home
 #
+# ide-base creates user, and setups home dev environment,
+# and installs common packages for dev environment.
 #
 ########
 
+# Arg: name=default (docker-compose overrides)
 ARG \
   USERNAME=user \
   PASSWORD=password \
@@ -26,7 +28,6 @@ ARG \
   TERM=xterm-256color \
   SHELL=/usr/bin/zsh \
   NODE_VER=14.17.15 \
-  NEOVIM_VER=0.5.0 \
   GOLANG_VER=1.17 \
   DOTFILES=${HOME}/.config/dotfiles \
   WORKSPACE=${HOME}/workspace \
@@ -45,14 +46,14 @@ ARG \
   ZSH_CUSTOM=${ZDOTDIR}/custom \
   KEEP_ZSHRC=yes \
   NODE_ENVIRONMENT=development \
-  NEOVIM_DIR=${XDG_DATA_HOME}/neovim \
   CARGO_HOME=${HOME}/.cargo \
   NVM_DIR=${XDG_CONFIG_HOME}/nvm \
   RUSTUP_HOME=${XDG_DATA_HOME}/rustup \
   GOROOT=${XDG_DATA_HOME}/go \
   GOPATH=${HOME}/go \
-  EXPORTS_FILE=${ZDOTDIR}/exports.env
+  GLOBALS_FILE=${ZDOTDIR}/globls.env
 
+# Store globals
 ENV \
   USERNAME=${USERNAME} \
   GROUPNAME=${GROUPNAME} \
@@ -162,9 +163,5 @@ RUN \
 # ENV \
 #    LUNARVIM_CONFIG_DIR="${XDG_CONFIG_HOME}/lvim" \
 #    LUNARVIM_RUNTIME_DIR="${XDG_DATA_HOME}/lunarvim" 
-
-RUN . ~/.zshrc
-
-RUN nvm
 
 CMD ["zsh"]
