@@ -2,8 +2,9 @@ FROM ide-base:latest
 
 ########
 #
-# local.Dockerfile creates user, setups home dev environment,
-# and installs common packages for dev environment.
+# local.Dockerfile is a local dev environemt for user. 
+# Which, creates user, setups environment, and
+# installs common packages.
 #
 ########
 
@@ -34,7 +35,7 @@ ARG \
   XDG_CONFIG_HOME=${HOME}/.config \
   XDG_CACHE_HOME=${HOME}/.cache \
   XDG_DATA_HOME=${HOME}/.local/share \
-  XDG_RUNTIME_DIR=${HOME}/.xdg \
+  XDG_RUNTIME_DIR=/run/user/${USER_ID} \
   XDG_STATE_HOME=${HOME}/.local/state \
   XDG_BIN_HOME=${HOME}/.local/bin \
   XDG_FONTS_HOME=${HOME}/.local/fonts \
@@ -51,7 +52,7 @@ ARG \
   RUSTUP_HOME=${XDG_DATA_HOME}/rustup \
   GOROOT=${XDG_DATA_HOME}/go \
   GOPATH=${HOME}/go \
-  GLOBALS_FILE=${ZDOTDIR}/globls.env
+  GLOBALS_FILE=${ZDOTDIR}/globals.env
 
 # Store globals
 ENV \
@@ -79,8 +80,7 @@ ENV \
   ZSH=${ZSH} \
   ZSH_CUSTOM=${ZSH_CUSTOM} \
   ZSHRC=${ZDOTDIR}/.zshrc \
-  NODE_ENVIRONMENT=${NODE_ENVIRONMENT}} \
-  NEOVIM_DIR=${NEOVIM_DIR} \
+  NODE_ENVIRONMENT=${NODE_ENVIRONMENT} \
   CARGO_HOME=${CARGO_HOME} \
   NVM_DIR=${NVM_DIR} \
   RUSTUP_HOME=${RUSTUP_HOME} \
@@ -118,16 +118,19 @@ RUN echo "source ${ZSHRC}" > ~/.zshrc
 
 SHELL ["/usr/bin/zsh", "-c"]
 
+
 RUN mkdir -p \
   $XDG_BIN_HOME \
   $XDG_CACHE_HOME \
   $XDG_CONFIG_HOME \
   $XDG_DATA_HOME \
   $XDG_FONTS_HOME \
-  $XDG_RUNTIME_DIR \
+  # $XDG_RUNTIME_DIR \
   $XDG_STATE_HOME \
   $ZDOTDIR \
   $ZSH_CUSTOM
+
+env PATH=$XDG_BIN_HOME:$PATH
 
 # Install oh-my-zsh
 # IF KEEP_ZSHRC=yes then keep existing .zshrc, else KEEP_ZSHRC=no then replaces or creates new .zshrc

@@ -5,7 +5,7 @@ _red_color=$(tput setaf 1)
 _green_color=$(tput setaf 2)
 _reset_color=$(tput sgr0)
 
-_logfile=build.log
+_logfile=./log/build.log
 _break="#############"
 _build="BUILD"
 _command="Command: docker-compose build $*"

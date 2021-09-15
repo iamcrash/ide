@@ -1,13 +1,5 @@
-#!/bin/bash
+#!bin/bash
 
-# export $(grep -v '^#' ./user.env | xargs)
-# 
-# export $(grep -v '^#' ./home.env | xargs)
+# source .env
 
-# env $(cat user.env home.env | grep -v "#" | xargs) docker-compose config
-
-# env -i PATH=$PATH docker-compose config
-
-source .env
-
-docker-compose run ide-base
+docker-compose run ide-editor
