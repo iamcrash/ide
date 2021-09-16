@@ -76,8 +76,6 @@ services:
         - GOPATH=${GOPATH}
         # Dotfiles
         - DOTFILES=${DOTFILES}
-    # volumes:
-    #   - ./volume/zsh:${ZDOTDIR}
 
   # Setup editors, language server, linters, and formatters
   # for dev environment
@@ -94,3 +92,5 @@ services:
         # Neovim
         - NEOVIM_VER=${NEOVIM_VER}
         - NEOVIM_DIR=${NEOVIM_DIR}
+    # volumes:
+    #   - ./volume/zsh:${ZDOTDIR}
