@@ -3,8 +3,6 @@ services:
 
   # Setup base environment
   base:
-    env_file:
-      - .env
     container_name: ide-base
     image: ide-base:latest
     hostname: machine
@@ -12,10 +10,29 @@ services:
       context: .
       dockerfile: ./base.Dockerfile
       args:
-        - TZ=${TZ}
-        - LANG=${LANG}
-        - LC_ALL=${LC_ALL}
-        - LANGUAGE=${LANGUAGE}
+        - HOME=/root
+        # Local
+        - TZ=America/Chicago
+        - LANGUAGE=en
+        - LANG=en_US.UTF-8
+        - LC_ALL=en_US.UTF-8
+        # XDG
+        - XDG_CONFIG_HOME=~/.config
+        - XDG_CACHE_HOME=~/.cache
+        - XDG_DATA_HOME=~/.local/share
+        - XDG_STATE_HOME=~/.local/state
+        - XDG_BIN_HOME=~/.local/bin
+        - XDG_FONTS_HOME=~/.local/fonts
+        # Golang
+        # - GOROOT=~/.local/share/go
+        - GOLANG_VER=1.17
+        - GOPATH=~/go
+        # Rust
+        - CARGO_HOME=~/.cargo
+        # - RUSTUP_HOME=${RUSTUP_HOME}
+        # Node
+        - NODE_VER=14.17.5
+        - NODE_ENVIRONMENT=development
 
   # Setup local dev environment
   local:
@@ -39,20 +56,20 @@ services:
         - WORKSPACE=${WORKSPACE}
         - GIT_USERNAME=${GIT_USERNAME}
         - GIT_EMAIL=${GIT_EMAIL}
-        - EDITOR=${EDITOR}
+        # - EDITOR=${EDITOR}
         - TZ=${TZ}
         - LANGUAGE=${LANGUAGE}
         - LANG=${LANG}
         - LC_ALL=${LC_ALL}
         # Shell 
+        # - SHELL_SESSIONS_DISABLE=${SHELL_SESSIONS_DISABLE}
         - SHELL=${SHELL}
-        - SHELL_SESSIONS_DISABLE=${SHELL_SESSIONS_DISABLE}
         - TERM=${TERM}
         # XDG
+        # - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}
         - XDG_CONFIG_HOME=${XDG_CONFIG_HOME}
         - XDG_CACHE_HOME=${XDG_CACHE_HOME}
         - XDG_DATA_HOME=${XDG_DATA_HOME}
-        - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}
         - XDG_STATE_HOME=${XDG_STATE_HOME}
         - XDG_BIN_HOME=${XDG_BIN_HOME}
         - XDG_FONTS_HOME=${XDG_FONTS_HOME}
@@ -67,12 +84,6 @@ services:
         - NVM_DIR=${NVM_DIR}
         - NODE_VER=${NODE_VER}
         - NODE_ENVIRONMENT=${NODE_ENVIRONMENT} 
-        # Rust
-        - CARGO_HOME=${CARGO_HOME}
-        - RUSTUP_HOME=${RUSTUP_HOME}
-        # Golang
-        - GOLANG_VER=${GOLANG_VER}
-        - GOROOT=${GOROOT} 
         - GOPATH=${GOPATH}
         # Dotfiles
         - DOTFILES=${DOTFILES}
@@ -90,6 +101,7 @@ services:
       dockerfile: ./editor.Dockerfile
       args:
         # Neovim
+        - EDITOR=${EDITOR} 
         - NEOVIM_VER=${NEOVIM_VER}
         - NEOVIM_DIR=${NEOVIM_DIR}
     # volumes:

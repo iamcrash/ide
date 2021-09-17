@@ -21,12 +21,13 @@ RUN \
   && ./nvim.appimage --appimage-extract \
   && ln -s ${NEOVIM_DIR}/squashfs-root/usr/bin/nvim ${XDG_BIN_HOME}/nvim
 
-# RUN nvm -v && nvim -v
-#   # # Install lunarvim \
-#   # && wget https://raw.githubusercontent.com/lunarvim/lunarvim/master/utils/installer/install.sh \
-#   # && chmod +x install.sh \
-#   # && yes | ./install.sh \
-#   # && rm install.sh
+RUN \
+  source $XDG_CONFIG_HOME/nvm/nvm.sh \
+  # Install lunarvim \
+  && wget https://raw.githubusercontent.com/lunarvim/lunarvim/master/utils/installer/install.sh \
+  && chmod +x install.sh \
+  && yes | ./install.sh \
+  && rm install.sh
 
 # LSP
 

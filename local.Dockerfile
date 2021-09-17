@@ -8,7 +8,6 @@ FROM ide-base:latest
 #
 ########
 
-# Arg: name=default (docker-compose overrides)
 ARG \
   USERNAME=user \
   PASSWORD=password \
@@ -21,7 +20,6 @@ ARG \
   GIT_EMAIL
 
 ARG \
-  EDITOR=nvim \
   TZ=UTC \
   LANGUAGE=en \
   LANG=en_US.UTF-8 \
@@ -31,28 +29,39 @@ ARG \
   NODE_VER=14.17.15 \
   GOLANG_VER=1.17 \
   DOTFILES=${HOME}/.config/dotfiles \
-  WORKSPACE=${HOME}/workspace \
+  WORKSPACE=${HOME}/workspace
+
+# XDG
+ARG \
   XDG_CONFIG_HOME=${HOME}/.config \
   XDG_CACHE_HOME=${HOME}/.cache \
   XDG_DATA_HOME=${HOME}/.local/share \
-  XDG_RUNTIME_DIR=/run/user/${USER_ID} \
   XDG_STATE_HOME=${HOME}/.local/state \
   XDG_BIN_HOME=${HOME}/.local/bin \
-  XDG_FONTS_HOME=${HOME}/.local/fonts \
-  SHELL_SESSIONS_DISABLE=1
+  XDG_FONTS_HOME=${HOME}/.local/fonts
 
+# ZSH
 ARG \
   ZDOTDIR=${XDG_CONFIG_HOME}/zsh \
   ZSH=${XDG_DATA_HOME}/oh-my-zsh \
   ZSH_CUSTOM=${ZDOTDIR}/custom \
   KEEP_ZSHRC=yes \
-  NODE_ENVIRONMENT=development \
-  CARGO_HOME=${HOME}/.cargo \
-  NVM_DIR=${XDG_CONFIG_HOME}/nvm \
-  RUSTUP_HOME=${XDG_DATA_HOME}/rustup \
-  GOROOT=${XDG_DATA_HOME}/go \
-  GOPATH=${HOME}/go \
   GLOBALS_FILE=${ZDOTDIR}/globals.env
+
+# Node
+ARG \
+  NODE_ENVIRONMENT=development \
+  NVM_DIR=${XDG_CONFIG_HOME}/nvm
+
+# Golang
+ARG \
+  GOROOT=${XDG_DATA_HOME}/go \
+  GOPATH=${HOME}/go
+
+# Rustlang
+# RUSTUP_HOME=${RUSTUP_HOME} ?
+ARG \
+  CARGO_HOME=${HOME}/.cargo
 
 # Store globals
 ENV \
@@ -60,7 +69,6 @@ ENV \
   GROUPNAME=${GROUPNAME} \
   HOME=${HOME} \
   HOSTNAME=${HOSTNAME} \
-  EDITOR=${EDITOR} \
   TZ=${TZ} \
   LANGUAGE=${LANGUAGE} \
   LANG=${LANG} \
@@ -72,7 +80,6 @@ ENV \
   XDG_CONFIG_HOME=${XDG_CONFIG_HOME} \
   XDG_CACHE_HOME=${XDG_CACHE_HOME} \
   XDG_DATA_HOME=${XDG_DATA_HOME} \
-  XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR} \
   XDG_STATE_HOME=${XDG_STATE_HOME} \
   XDG_BIN_HOME=${XDG_BIN_HOME} \
   XDG_FONTS_HOME=${XDG_FONTS_HOME} \
@@ -81,13 +88,11 @@ ENV \
   ZSH_CUSTOM=${ZSH_CUSTOM} \
   ZSHRC=${ZDOTDIR}/.zshrc \
   NODE_ENVIRONMENT=${NODE_ENVIRONMENT} \
-  CARGO_HOME=${CARGO_HOME} \
   NVM_DIR=${NVM_DIR} \
-  RUSTUP_HOME=${RUSTUP_HOME} \
+  GLOBALS_FILE=${GLOBALS_FILE} \
   GOROOT=${GOROOT} \
   GOPATH=${GOPATH} \
-  EXPORTS_FILE=${EXPORTS_FILE} \
-  SHELL_SESSIONS_DISABLE=${SHELL_SESSIONS_DISABLE}
+  CARGO_HOME=${CARGO_HOME}
 
 RUN \
   # Create user \
@@ -114,10 +119,7 @@ RUN chown -R ${USERNAME}:${GROUPNAME} ${HOME}
 
 USER ${USERNAME}
 
-RUN echo "source ${ZSHRC}" > ~/.zshrc
-
 SHELL ["/usr/bin/zsh", "-c"]
-
 
 RUN mkdir -p \
   $XDG_BIN_HOME \
@@ -125,7 +127,6 @@ RUN mkdir -p \
   $XDG_CONFIG_HOME \
   $XDG_DATA_HOME \
   $XDG_FONTS_HOME \
-  # $XDG_RUNTIME_DIR \
   $XDG_STATE_HOME \
   $ZDOTDIR \
   $ZSH_CUSTOM
@@ -134,6 +135,7 @@ env PATH=$XDG_BIN_HOME:$PATH
 
 # Install oh-my-zsh
 # IF KEEP_ZSHRC=yes then keep existing .zshrc, else KEEP_ZSHRC=no then replaces or creates new .zshrc
+RUN echo "source ${ZSHRC}" > ~/.zshrc
 RUN \
   curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | zsh || true
 
@@ -162,9 +164,5 @@ RUN \
 # Install Golang
 RUN \
   wget https://golang.org/dl/go1.17.linux-amd64.tar.gz -P ${GOROOT}
-
-# ENV \
-#    LUNARVIM_CONFIG_DIR="${XDG_CONFIG_HOME}/lvim" \
-#    LUNARVIM_RUNTIME_DIR="${XDG_DATA_HOME}/lunarvim" 
 
 CMD ["zsh"]
