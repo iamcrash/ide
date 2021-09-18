@@ -7,6 +7,7 @@ ARG \
   TZ=America/Chicago \
   LANG=en_US.UTF-8 \
   LC_ALL=en_US.UTF-8 \
+  TERM=xterm-256 \
   LANGUAGE=en
 
 ARG \
@@ -92,10 +93,6 @@ RUN \
   ripgrep \
   fd-find
 
-# Setup fd-find
-# Use command fd as fd-find by placing binary in local bin
-RUN ln -s $(which fdfind) ${XDG_BIN_HOME}/fd
-
 # Install cargo
 # For script: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 RUN apt-get install -y cargo
@@ -104,6 +101,11 @@ RUN apt-get install -y cargo
 # wget https://golang.org/dl/go1.17.linux-amd64.tar.gz -P ${GOROOT}
 RUN \
   wget https://golang.org/dl/go1.17.linux-amd64.tar.gz
+
+
+# Setup fd-find
+# Use command fd as fd-find by placing binary in local bin
+# RUN ln -s $(which fdfind) ${XDG_BIN_HOME}/fd
 
 # Setup rg
 # ARG \
