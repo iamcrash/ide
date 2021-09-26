@@ -18,6 +18,9 @@ services:
         - LC_ALL=en_US.UTF-8
         - TERM=xterm-256color
         - GOLANG_VER=1.17.1
+        # Prefix to GOROOT and CARGO should be the XDG_DATA_HOME
+        - GOROOT=/usr/local/go
+        - CARGO_HOME=/usr/local/cargo
 
   # Setup local dev environment
   local:

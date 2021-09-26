@@ -2,12 +2,14 @@ FROM ubuntu:20.04
 
 ###
 #
-# Root packages and config
+# Root
+# Install and setup base packages and config
 #
 ###
 
 SHELL ["/bin/bash","-c"]
 
+# Get and set args
 ARG \
   TZ=America/Chicago \
   LANG=en_US.UTF-8 \
@@ -17,10 +19,6 @@ ARG \
   XDG_DATA_HOME=/usr/local/bin \
   XDG_CONFIG_HOME=/usr/local/etc \
   GOLANG_VER=1.17.1
-
-ENV \
-  GOROOT=${XDG_DATA_HOME}/go \
-  CARGO_HOME=${XDG_DATA_HOME}/cargo
 
 RUN apt-get update -y && apt-get upgrade -y
 
@@ -33,12 +31,14 @@ RUN DEBIAN_FRONTEND=noninteractive \
   && locale-gen ${LANG}  \
   && update-locale LANG=${LANG}
 
+# Set locale environment vars
 ENV \
   LANG=${LANG} \
   LANGUAGE=${LANGUAGE} \
   LC_ALL=${LC_ALL} \
   TZ=${TZ}
 
+# Install packages
 RUN \
   DEBIAN_FRONTEND=noninteractive \
   TZ=${TZ} \
@@ -89,20 +89,25 @@ RUN \
   ripgrep \
   fd-find
 
+# Rustlang
 # Install cargo
 # For script: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 # For apt-get: RUN apt-get install -y cargo
+ENV CARGO_HOME=${XDG_DATA_HOME}/cargo
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
+# Golang
 # Install golang
 # wget https://golang.org/dl/go1.17.linux-amd64.tar.gz -P ${GOROOT}
+ENV GOROOT=${XDG_DATA_HOME}/go \
 RUN \
   wget https://golang.org/dl/go${GOLANG_VER}.linux-amd64.tar.gz \
   && rm -rf /usr/local/go && tar -C /usr/local -xzf go${GOLANG_VER}.linux-amd64.tar.gz \
   && ln -s /usr/local/go/bin/go /usr/local/bin/go \
   && ln -s /usr/local/go/bin/gofmt /usr/local/bin/gofmt
 
-# Setup fd-find
+# fd command
+# Override default fd with fd-find
 # Use command fd as fd-find by placing binary in local bin
 RUN ln -s $(which fdfind) /usr/local/bin/fd
 
@@ -122,7 +127,8 @@ RUN ln -s $(which fdfind) /usr/local/bin/fd
 #      --ansi --disabled --query "$INITIAL_QUERY" \
 #      --height=50% --layout=reverse
 
-# Editor Neovim
+# Neovim
+# Set the apt repository and install
 # RUN \
   # add-apt-repository ppa:neovim-ppa/unstable \
   # && sudo apt-get update \
