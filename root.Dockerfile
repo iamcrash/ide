@@ -1,31 +1,27 @@
 FROM ubuntu:20.04
 
+###
+#
+# Root packages and config
+#
+###
+
 SHELL ["/bin/bash","-c"]
 
 ARG \
-  HOME=/root \
   TZ=America/Chicago \
   LANG=en_US.UTF-8 \
   LC_ALL=en_US.UTF-8 \
-  TERM=xterm-256 \
-  LANGUAGE=en
+  TERM=xterm-256color \
+  LANGUAGE=en \
+  XDG_DATA_HOME=/usr/local/bin \
+  XDG_CONFIG_HOME=/usr/local/etc \
+  GOLANG_VER=1.17.1
 
-ARG \
-  XDG_CONFIG_HOME=${HOME}/.config \
-  XDG_CACHE_HOME=${HOME}/.cache \
-  XDG_DATA_HOME=${HOME}/.local/share \
-  XDG_STATE_HOME=${HOME}/.local/.state \
-  XDG_BIN_HOME=${HOME}/.local/bin \
-  XDG_FONTS_HOME=${HOME}/.local/fonts \
-  GOLANG_VER=1.17.1 \
-  NODE_VER=14.17.5 \
-  NODE_ENVIRONMENT=development \
-  GOPATH=${HOME}/go \
-  CARGO_HOME=${HOME}/.cargo 
+ENV \
+  GOROOT=${XDG_DATA_HOME}/go \
+  CARGO_HOME=${XDG_DATA_HOME}/cargo
 
-
-ENV PATH=${XDG_BIN_HOME}:${PATH}
-  
 RUN apt-get update -y && apt-get upgrade -y
 
 # Set the locale
@@ -95,17 +91,20 @@ RUN \
 
 # Install cargo
 # For script: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-RUN apt-get install -y cargo
+# For apt-get: RUN apt-get install -y cargo
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
 # Install golang
 # wget https://golang.org/dl/go1.17.linux-amd64.tar.gz -P ${GOROOT}
 RUN \
-  wget https://golang.org/dl/go1.17.linux-amd64.tar.gz
-
+  wget https://golang.org/dl/go${GOLANG_VER}.linux-amd64.tar.gz \
+  && rm -rf /usr/local/go && tar -C /usr/local -xzf go${GOLANG_VER}.linux-amd64.tar.gz \
+  && ln -s /usr/local/go/bin/go /usr/local/bin/go \
+  && ln -s /usr/local/go/bin/gofmt /usr/local/bin/gofmt
 
 # Setup fd-find
 # Use command fd as fd-find by placing binary in local bin
-# RUN ln -s $(which fdfind) ${XDG_BIN_HOME}/fd
+RUN ln -s $(which fdfind) /usr/local/bin/fd
 
 # Setup rg
 # ARG \

@@ -1,22 +1,35 @@
 version: '3.9'
 services:
 
-  # Setup base environment
-  base:
-    container_name: ide-base
-    image: ide-base:latest
+  # Setup root environment
+  root:
+    container_name: dev-root
+    image: dev-root:latest
     hostname: machine
     build:
       context: .
-      dockerfile: ./base.Dockerfile
+      dockerfile: ./root.Dockerfile
       args:
-        - HOME=/root
-        # Local
+        - XDG_DATA_HOME=/usr/local
+        - XDG_CONFIG_HOME=/usr/local/etc
         - TZ=America/Chicago
         - LANGUAGE=en
         - LANG=en_US.UTF-8
         - LC_ALL=en_US.UTF-8
         - TERM=xterm-256color
+        - GOLANG_VER=1.17.1
+
+  # Setup local dev environment
+  local:
+    env_file:
+      - .env
+    container_name: dev-local
+    image: dev-local:latest
+    hostname: machine
+    build:
+      context: .
+      dockerfile: ./local.Dockerfile
+      args:
         # XDG
         - XDG_CONFIG_HOME=~/.config
         - XDG_CACHE_HOME=~/.cache
@@ -24,28 +37,6 @@ services:
         - XDG_STATE_HOME=~/.local/state
         - XDG_BIN_HOME=~/.local/bin
         - XDG_FONTS_HOME=~/.local/fonts
-        # Golang
-        # - GOROOT=~/.local/share/go
-        - GOLANG_VER=1.17
-        - GOPATH=~/go
-        # Rust
-        - CARGO_HOME=~/.cargo
-        # - RUSTUP_HOME=${RUSTUP_HOME}
-        # Node
-        - NODE_VER=14.17.5
-        - NODE_ENVIRONMENT=development
-
-  # Setup local dev environment
-  local:
-    env_file:
-      - .env
-    container_name: ide-local
-    image: ide-local:latest
-    hostname: machine
-    build:
-      context: .
-      dockerfile: ./local.Dockerfile
-      args:
         # User
         - USERNAME=${USERNAME}
         - HOME=${HOME}
@@ -68,12 +59,12 @@ services:
         - TERM=${TERM}
         # XDG
         # - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}
-        - XDG_CONFIG_HOME=${XDG_CONFIG_HOME}
-        - XDG_CACHE_HOME=${XDG_CACHE_HOME}
-        - XDG_DATA_HOME=${XDG_DATA_HOME}
-        - XDG_STATE_HOME=${XDG_STATE_HOME}
-        - XDG_BIN_HOME=${XDG_BIN_HOME}
-        - XDG_FONTS_HOME=${XDG_FONTS_HOME}
+        # - XDG_CONFIG_HOME=${XDG_CONFIG_HOME}
+        # - XDG_CACHE_HOME=${XDG_CACHE_HOME}
+        # - XDG_DATA_HOME=${XDG_DATA_HOME}
+        # - XDG_STATE_HOME=${XDG_STATE_HOME}
+        # - XDG_BIN_HOME=${XDG_BIN_HOME}
+        # - XDG_FONTS_HOME=${XDG_FONTS_HOME}
         # Oh-my-zsh
         - KEEP_ZSHRC=${KEEP_ZSHRC}
         - ZSH=${ZSH}
@@ -91,7 +82,7 @@ services:
 
   # Setup editors, language server, linters, and formatters
   # for dev environment
-  editor:
+  dev:
     env_file:
       - .env
     container_name: ide-editor 

@@ -1,5 +1,4 @@
 FROM ide-base:latest
-
 ########
 #
 # local.Dockerfile is a local dev environemt for user. 
