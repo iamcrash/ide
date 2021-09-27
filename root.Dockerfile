@@ -18,8 +18,11 @@ ARG \
   LANGUAGE=en \
   XDG_DATA_HOME=/usr/local/bin \
   XDG_CONFIG_HOME=/usr/local/etc \
-  GOLANG_VER=1.17.1
+  GOLANG_VER=1.17.1 \
+  CARGO_HOME=/usr/local/cargo \
+  GOROOT=/usr/local/go
 
+# Update and upgrade
 RUN apt-get update -y && apt-get upgrade -y
 
 # Set the locale
@@ -30,7 +33,6 @@ RUN DEBIAN_FRONTEND=noninteractive \
   && sed -i 's/^# *\(en_US.UTF-8\)/\1/' /etc/locale.gen \
   && locale-gen ${LANG}  \
   && update-locale LANG=${LANG}
-
 # Set locale environment vars
 ENV \
   LANG=${LANG} \
@@ -99,24 +101,31 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 # Golang
 # Install golang
 # wget https://golang.org/dl/go1.17.linux-amd64.tar.gz -P ${GOROOT}
-ENV GOROOT=${XDG_DATA_HOME}/go \
+ENV GOROOT=${XDG_DATA_HOME}/go
 RUN \
   wget https://golang.org/dl/go${GOLANG_VER}.linux-amd64.tar.gz \
   && rm -rf /usr/local/go && tar -C /usr/local -xzf go${GOLANG_VER}.linux-amd64.tar.gz \
   && ln -s /usr/local/go/bin/go /usr/local/bin/go \
   && ln -s /usr/local/go/bin/gofmt /usr/local/bin/gofmt
 
+###
+# Search functionality
+###
+
 # fd command
+# https://github.com/sharkdp/fd
 # Override default fd with fd-find
 # Use command fd as fd-find by placing binary in local bin
 RUN ln -s $(which fdfind) /usr/local/bin/fd
 
-# Setup rg
+# RG
+# Default rg setup
 # ARG \
 #  RIPGREP_CONFIG_PATH=${HOME}/.ripgrepc \
 #  RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
 
-# Setup fzf
+# FZF
+# Default fzf setup
 # FZF
 # Example: FZF_DEFAULT_COMMAND='fd --type f'
 # ARG \
@@ -127,11 +136,18 @@ RUN ln -s $(which fdfind) /usr/local/bin/fd
 #      --ansi --disabled --query "$INITIAL_QUERY" \
 #      --height=50% --layout=reverse
 
+###
+# Editor
+###
+
 # Neovim
 # Set the apt repository and install
 # RUN \
   # add-apt-repository ppa:neovim-ppa/unstable \
   # && sudo apt-get update \
   # && sudo apt-get install neovim python3-neovim python-neovim
+
+# Set the default shell for root
+RUN chsh -s /usr/bin/zsh root
 
 CMD ["/bin/bash"]
