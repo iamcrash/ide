@@ -118,13 +118,16 @@ RUN \
 # Use command fd as fd-find by placing binary in local bin
 RUN ln -s $(which fdfind) /usr/local/bin/fd
 
-# RG
+# System wide config
+# /etc/profile
+
+# Ripgrep
 # Default rg setup
 # ARG \
 #  RIPGREP_CONFIG_PATH=${HOME}/.ripgrepc \
 #  RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
 
-# FZF
+# Fuzzy search
 # Default fzf setup
 # FZF
 # Example: FZF_DEFAULT_COMMAND='fd --type f'
