@@ -15,12 +15,11 @@ ARG \
   LANG=en_US.UTF-8 \
   LC_ALL=en_US.UTF-8 \
   TERM=xterm-256color \
-  LANGUAGE=en \
-  XDG_DATA_HOME=/usr/local/bin \
-  XDG_CONFIG_HOME=/usr/local/etc \
-  GOLANG_VER=1.17.1 \
-  CARGO_HOME=/usr/local/cargo \
-  GOROOT=/usr/local/go
+  LANGUAGE=en
+
+# TODO: System wide approach according to linux specs?
+# XDG_DATA_HOME=/usr/local/bin
+# XDG_CONFIG_HOME=/usr/local/etc
 
 # Update and upgrade
 RUN apt-get update -y && apt-get upgrade -y
@@ -33,6 +32,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
   && sed -i 's/^# *\(en_US.UTF-8\)/\1/' /etc/locale.gen \
   && locale-gen ${LANG}  \
   && update-locale LANG=${LANG}
+
 # Set locale environment vars
 ENV \
   LANG=${LANG} \
@@ -91,66 +91,139 @@ RUN \
   ripgrep \
   fd-find
 
-# Rustlang
+# TODO: System wide config?
+# /etc/profile
+
+# Home and xdg globals
+ENV HOME=/root
+
+# Set XDG globals
+ENV \
+  XDG_CONFIG_HOME=$HOME/.config \
+  XDG_CACHE_HOME=$HOME/.cache \
+  XDG_DATA_HOME=$HOME/.local/share \
+  XDG_STATE_HOME=$HOME/.local/state \
+  XDG_BIN_HOME=$HOME/.local/bin \
+  XDG_FONTS_HOME=$HOME/.local/fonts \
+  XDG_DOTFILES_HOME=$HOME/.dotfiles
+
+# Append local executable directory 
+ENV PATH=${XDG_BIN_HOME}:$PATH
+
+
+# Make directories if they dont exist
+RUN mkdir -p \
+  $XDG_BIN_HOME \
+  $XDG_CACHE_HOME \
+  $XDG_CONFIG_HOME \
+  $XDG_DATA_HOME \
+  $XDG_FONTS_HOME \
+  $XDG_STATE_HOME
+
+
+###
+# Setup ZSH
+###
+# Set the oh-my-zsh framework path
+ENV ZSH=${XDG_DATA_HOME}/oh-my-zsh
+
+# TODO: Set zshcustom directory
+# ZSH_CUSTOM=${ZSH}/custom
+
+# TODO: Set ZDOTDIR global?
+# ENV ZDOTDIR=${XDG_CONFIG_HOME}/zsh
+
+# TODO: Make zsh globals directories?
+# RUN mkdir -p $ZDOTDIR $ZSH_CUSTOM
+
+# TODO: Source to zdotdir?
+# RUN echo "source ${ZDOTDIR}/.zshrc" > ~/.zshrc
+
+# After setting up zsh globals, run zsh shell for every command
+SHELL ["/usr/bin/zsh","-c"]
+
+# Replace the default fd command
+# TODO: Better if i put in local bin? RUN ln -s $(which fdfind) ${XDG_BIN_HOME}/fd
+RUN ln -s $(which fdfind) /usr/local/bin/fd
+
+###
 # Install cargo
+###
 # For script: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 # For apt-get: RUN apt-get install -y cargo
+# TODO: Use arg? ARG CARGO_HOME=/usr/local/cargo
 ENV CARGO_HOME=${XDG_DATA_HOME}/cargo
+
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
-# Golang
-# Install golang
-# wget https://golang.org/dl/go1.17.linux-amd64.tar.gz -P ${GOROOT}
+###
+# Install Golang
+###
+ARG \
+  GOLANG_VER=1.17.1
+
 ENV GOROOT=${XDG_DATA_HOME}/go
+
 RUN \
+  # wget https://golang.org/dl/go1.17.linux-amd64.tar.gz -P ${GOROOT} \
   wget https://golang.org/dl/go${GOLANG_VER}.linux-amd64.tar.gz \
   && rm -rf /usr/local/go && tar -C /usr/local -xzf go${GOLANG_VER}.linux-amd64.tar.gz \
   && ln -s /usr/local/go/bin/go /usr/local/bin/go \
   && ln -s /usr/local/go/bin/gofmt /usr/local/bin/gofmt
 
 ###
-# Search functionality
+# Install Nerdfonts
 ###
-
-# fd command
-# https://github.com/sharkdp/fd
-# Override default fd with fd-find
-# Use command fd as fd-find by placing binary in local bin
-RUN ln -s $(which fdfind) /usr/local/bin/fd
-
-# System wide config
-# /etc/profile
-
-# Ripgrep
-# Default rg setup
-# ARG \
-#  RIPGREP_CONFIG_PATH=${HOME}/.ripgrepc \
-#  RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
-
-# Fuzzy search
-# Default fzf setup
-# FZF
-# Example: FZF_DEFAULT_COMMAND='fd --type f'
-# ARG \
-#  FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border' \
-#  INITIAL_QUERY="" \
-# FZF_DEFAULT_COMMAND="$RG_PREFIX '$INITIAL_QUERY'" \
-#  fzf --bind "change:reload:$RG_PREFIX {q} || true" \
-#      --ansi --disabled --query "$INITIAL_QUERY" \
-#      --height=50% --layout=reverse
+RUN \
+  curl -o "${XDG_FONTS_HOME}/Droid Sans Mono for Powerline Nerd Font Complete.otf" -fL https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/DroidSansMono/complete/Droid%20Sans%20Mono%20Nerd%20Font%20Complete.otf
 
 ###
-# Editor
+# Install zsh framework oh-my-zsh
+# Install oh-my-zsh Powerlevel10k theme
 ###
+RUN \
+  # IF KEEP_ZSHRC=yes then keep existing .zshrc, else KEEP_ZSHRC=no then replaces or creates new .zshrc \
+  curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | zsh || true
 
-# Neovim
-# Set the apt repository and install
+RUN \
+  git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH:-$ZSH}/themes/powerlevel10k
+
+###
+# Install NVM, Node, and yarn globally
+###
+ENV \
+  NVM_DIR=${XDG_CONFIG_HOME}/nvm \
+  NODE_VER=14.18.0
+
+RUN \
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | zsh \
+  && . ${NVM_DIR}/nvm.sh \
+  # Install Node \
+  && nvm install ${NODE_VER} \
+  && nvm use node \
+  && npm install --global yarn \
+  && yarn global add neovim 
+
+###
+# Install unstable neovim editor 
+###
+RUN \
+  add-apt-repository ppa:neovim-ppa/unstable \
+  && sudo apt-get update \
+  && sudo apt-get install -y neovim python3-neovim
+
+###
+# Install neovim flavor lunarvim
+###
 # RUN \
-  # add-apt-repository ppa:neovim-ppa/unstable \
-  # && sudo apt-get update \
-  # && sudo apt-get install neovim python3-neovim python-neovim
+#   source ~/.zshrc \
+#   && wget https://raw.githubusercontent.com/lunarvim/lunarvim/master/utils/installer/install.sh \
+#   && chmod +x install.sh \
+#   && yes | ./install.sh \
+#   && rm install.sh
 
-# Set the default shell for root
-RUN chsh -s /usr/bin/zsh root
+# TODO: Set the default shell for root? RUN chsh -s /usr/bin/zsh root
+# TODO: Dotfiles?
+# TODO: .config/neovim
 
-CMD ["/bin/bash"]
+CMD ["zsh"]
